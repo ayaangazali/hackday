@@ -2,10 +2,11 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { Camera, StopCircle, PlayCircle, Save, Loader2 } from "lucide-react"
+import { Camera, StopCircle, PlayCircle, Save, Loader2, Video } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { DashboardLayout } from "@/components/dashboard-layout"
 import TimestampList from "@/components/timestamp-list"
 import ChatInterface from "@/components/chat-interface"
 import { Timeline } from "../../components/Timeline"
@@ -699,52 +700,53 @@ export default function Page() {
   // Render
   // -----------------------------
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl relative">
-        <div className="absolute inset-0 bg-purple-900/5 blur-3xl rounded-full"></div>
-        <div className="relative z-10 p-8">
-          <div className="space-y-8">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold mb-2 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">
-                Real-time Stream Analyzer
-              </h1>
-              <p className="text-zinc-400">
-                Analyze your live stream in real-time and detect key moments
-              </p>
-            </div>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Live Stream Analysis</h1>
+            <p className="text-slate-400">Real-time video analysis with AI-powered detection</p>
+          </div>
+        </div>
+
+        <div className="max-w-6xl">
+          <div className="space-y-6">
 
             <div className="space-y-4">
-              <div className="relative aspect-video rounded-lg overflow-hidden bg-zinc-900">
-                {isInitializing && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900/90 z-20">
-                    <Loader2 className="w-8 h-8 animate-spin text-purple-500 mb-2" />
-                    <p className="text-zinc-300">{initializationProgress}</p>
-                  </div>
-                )}
-                <div className="relative w-full h-full" style={{ aspectRatio: "16/9" }}>
-                  {isClient && (
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      playsInline
-                      muted
+              <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden">
+                <div className="relative aspect-video bg-slate-950">
+                  {isInitializing && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 z-20">
+                      <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
+                      <p className="text-slate-300 font-medium">{initializationProgress}</p>
+                    </div>
+                  )}
+                  <div className="relative w-full h-full">
+                    {isClient && (
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        width={640}
+                        height={360}
+                        className="absolute inset-0 w-full h-full object-cover opacity-0"
+                      />
+                    )}
+                    <canvas
+                      ref={canvasRef}
                       width={640}
                       height={360}
-                      className="absolute inset-0 w-full h-full object-cover opacity-0"
+                      className="absolute inset-0 w-full h-full object-cover"
                     />
-                  )}
-                  <canvas
-                    ref={canvasRef}
-                    width={640}
-                    height={360}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
+                  </div>
                 </div>
               </div>
 
               {error && !isInitializing && (
-                <div className="p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
-                  {error}
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400">
+                  <p className="font-semibold">Error</p>
+                  <p className="text-sm">{error}</p>
                 </div>
               )}
 
@@ -880,6 +882,6 @@ export default function Page() {
         </div>
         <ChatInterface timestamps={timestamps} />
       </div>
-    </div>
+    </DashboardLayout>
   )
 }

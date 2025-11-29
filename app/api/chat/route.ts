@@ -29,31 +29,29 @@ export async function POST(request: Request) {
         ).join('\n')}\n\nPlease help the user with any questions about these events or provide general assistance.`
       : 'No events have been detected yet. I can still help you with any questions about the video stream or general assistance.'
 
+    const systemMessage = `You are a helpful assistant monitoring a real-time video stream. You have access to detected events and can provide guidance, especially during dangerous situations. Be concise but informative, and show appropriate concern for dangerous events while remaining calm and helpful.
+
+${contextMessage}`
+
     console.log('Sending request to OpenAI...')
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        {
-          role: "system",
-          content: "You are a helpful assistant monitoring a real-time video stream. You have access to detected events and can provide guidance, especially during dangerous situations. Be concise but informative, and show appropriate concern for dangerous events while remaining calm and helpful."
-        },
-        {
-          role: "system",
-          content: contextMessage
-        },
+        { role: "system", content: systemMessage },
         ...messages
       ],
-      temperature: 0.7,
-      max_tokens: 150 // Keep responses concise
+      max_tokens: 500,
     })
 
-    if (!response.choices?.[0]?.message?.content) {
+    const text = response.choices[0]?.message?.content
+
+    if (!text) {
       throw new Error('Invalid response from OpenAI')
     }
 
     console.log('Successfully received response from OpenAI')
     return NextResponse.json({ 
-      content: response.choices[0].message.content,
+      content: text,
       role: 'assistant'
     })
   } catch (error: any) {

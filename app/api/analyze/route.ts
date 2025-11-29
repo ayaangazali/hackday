@@ -1,7 +1,13 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"
 import { NextResponse } from "next/server"
+import OpenAI from "openai"
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+const getOpenAIClient = () => {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error('OpenAI API key not found in environment variables')
+  }
+  return new OpenAI({ apiKey })
+}
 
 export async function POST(request: Request) {
   try {

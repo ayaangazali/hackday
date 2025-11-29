@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Trash2, Search } from "lucide-react"
+import { Trash2, Search, Video, Clock, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { DashboardLayout } from "@/components/dashboard-layout"
 
 interface SavedVideo {
   id: string
@@ -20,9 +21,32 @@ export default function SavedVideosPage() {
   const [filteredVideos, setFilteredVideos] = useState<SavedVideo[]>([])
 
   useEffect(() => {
-    const videos = JSON.parse(localStorage.getItem("savedVideos") || "[]")
-    setSavedVideos(videos)
-    setFilteredVideos(videos)
+    // If no saved videos in localStorage, seed with a single demo video
+    const existing = JSON.parse(localStorage.getItem("savedVideos") || "[]")
+
+    if (!existing || existing.length === 0) {
+      const demoSeed: SavedVideo[] = [
+        {
+          id: "demo-1",
+          name: "Front Entrance Monitor - Demo",
+          url: "/videos/Robbery1.mp4",
+          thumbnailUrl: "/cat1.png",
+          timestamps: [
+            { timestamp: "00:15", description: "Person loitering near entrance for extended period" },
+            { timestamp: "02:30", description: "Unauthorized access attempt detected" },
+            { timestamp: "05:45", description: "Normal foot traffic" },
+            { timestamp: "08:20", description: "Suspicious package left unattended" },
+          ],
+        },
+      ]
+
+      localStorage.setItem("savedVideos", JSON.stringify(demoSeed))
+      setSavedVideos(demoSeed)
+      setFilteredVideos(demoSeed)
+    } else {
+      setSavedVideos(existing)
+      setFilteredVideos(existing)
+    }
   }, [])
 
   useEffect(() => {
@@ -41,71 +65,80 @@ export default function SavedVideosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-extrabold mb-8 text-center text-white tracking-tight drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">
-          Saved Videos
-        </h1>
-        <div className="mb-6 relative">
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-slate-800 mb-1">Saved Videos</h1>
+            <p className="text-slate-500">{savedVideos.length} videos in your library</p>
+          </div>
+        </div>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <Input
             type="text"
             placeholder="Search videos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400 pl-10 pr-4 py-2 rounded-full focus:ring-2 focus:ring-white focus:border-transparent"
+            className="w-full bg-white border border-slate-200 text-slate-700 placeholder-slate-400 pl-10 pr-4 py-3 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400" size={18} />
         </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredVideos.map((video) => (
             <div
               key={video.id}
-              className="group bg-zinc-900 rounded-lg overflow-hidden transition-all duration-300 ease-in-out hover:bg-zinc-800 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/20"
+              className="group bg-white border border-slate-100 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
             >
-              <div className="group">
-                <div className="aspect-video">
-                  <video
-                    src={video.url}
-                    className="w-full h-full object-cover transition-all duration-300 ease-in-out group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-4">
-                  <h2 className="text-lg font-semibold mb-2 tracking-wide">{video.name}</h2>
-                  <div className="flex justify-between items-center">
-                    <Link
-                      href={`/pages/video/${video.id}`}
-                      className="text-white hover:text-gray-300 text-sm font-medium tracking-wider uppercase transition-colors duration-200"
-                    >
-                      View Analysis
-                    </Link>
-                    <Button
-                      onClick={() => handleDelete(video.id)}
-                      variant="destructive"
-                      size="icon"
-                      className="rounded-full"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+              <div className="aspect-video bg-slate-50 relative overflow-hidden">
+                <video
+                  src={video.url}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  muted
+                  playsInline
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent opacity-60" />
+                <div className="absolute top-3 right-3">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/80 rounded-full border border-slate-100">
+                    <Video className="w-3 h-3 text-emerald-500" />
+                    <span className="text-xs text-slate-700 font-medium">{video.timestamps.length} Events</span>
                   </div>
+                </div>
+              </div>
+              <div className="p-5">
+                <h2 className="text-lg font-medium mb-2 text-slate-800 truncate">{video.name}</h2>
+                <div className="flex items-center gap-2 mb-4 text-slate-500 text-sm">
+                  <Clock className="w-4 h-4" />
+                  <span>{video.timestamps.length} key moments detected</span>
+                </div>
+                <div className="flex gap-2">
+                  <Link href={`/pages/video/${video.id}`} className="flex-1">
+                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
+                      <Eye className="h-4 w-4" />
+                      View Analysis
+                    </Button>
+                  </Link>
+                  <Button
+                    onClick={() => handleDelete(video.id)}
+                    variant="destructive"
+                    size="icon"
+                    className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-100"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </div>
           ))}
         </div>
+
         {filteredVideos.length === 0 && (
-          <p className="text-center text-zinc-400 mt-8 text-lg font-light">
+          <p className="text-center text-slate-400 mt-8 text-lg font-light">
             {searchTerm ? "No videos match your search." : "No saved videos yet."}
           </p>
         )}
-        <div className="mt-12 text-center">
-          <Link
-            href="/pages/upload"
-            className="text-white hover:text-gray-300 text-lg font-medium tracking-wide transition-colors duration-200"
-          >
-            Back to Analyzer
-          </Link>
-        </div>
       </div>
-    </div>
+    </DashboardLayout>
   )
 }

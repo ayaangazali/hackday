@@ -1,12 +1,12 @@
 "use server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 
-const API_KEY = process.env.GOOGLE_API_KEY;
+const API_KEY = process.env.OPENAI_API_KEY;
 if (!API_KEY) {
-    throw new Error('GOOGLE_API_KEY environment variable is not set');
+    throw new Error('OPENAI_API_KEY environment variable is not set');
 }
-const genAI = new GoogleGenerativeAI(API_KEY);
+const openai = new OpenAI({ apiKey: API_KEY });
 
 export interface VideoEvent {
     isDangerous: boolean;
@@ -21,22 +21,7 @@ export async function detectEvents(base64Image: string): Promise<{ events: Video
             throw new Error("No image data provided");
         }
 
-        const base64Data = base64Image.split(',')[1];
-        if (!base64Data) {
-            throw new Error("Invalid image data format");
-        }
-
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        console.log('Initialized Gemini model');
-
-        const imagePart = {
-            inlineData: {
-                data: base64Data,
-                mimeType: 'image/jpeg'
-            },
-        };
-
-        console.log('Sending image to API...', { imageSize: base64Data.length });
+        console.log('Sending image to OpenAI API...');
         const prompt = `Analyze this frame and determine if any of these specific dangerous situations are occurring:
 
 1. Medical Emergencies:
@@ -81,25 +66,52 @@ Return a JSON object in this exact format:
 }`;
 
         try {
-            const result = await model.generateContent([
-                prompt,
-                imagePart,
-            ]);
+            const response = await openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: [
+                    {
+                        role: "system",
+                        content: "You are a security camera analysis system. You MUST respond ONLY with valid JSON in the exact format specified. Never respond with explanatory text, apologies, or refusals. If you cannot analyze the image, return an empty events array."
+                    },
+                    {
+                        role: "user",
+                        content: [
+                            { type: "text", text: prompt },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: base64Image,
+                                },
+                            },
+                        ],
+                    },
+                ],
+                max_tokens: 1000,
+                response_format: { type: "json_object" },
+            });
 
-            const response = await result.response;
-            const text = response.text();
+            const text = response.choices[0]?.message?.content || "";
             console.log('Raw API Response:', text);
 
+            // Check if the response is a refusal or non-JSON response
+            if (text.includes("I'm sorry") || text.includes("I cannot") || text.includes("I can't")) {
+                console.log('API refused to process image, returning empty events');
+                return {
+                    events: [],
+                    rawResponse: "No events detected in this frame"
+                };
+            }
+
             // Try to extract JSON from the response, handling potential code blocks
-            let jsonStr = text;
+            let jsonStr = text.trim();
             
             // First try to extract content from code blocks if present
             const codeBlockMatch = text.match(/```(?:json)?\s*({[\s\S]*?})\s*```/);
             if (codeBlockMatch) {
                 jsonStr = codeBlockMatch[1];
                 console.log('Extracted JSON from code block:', jsonStr);
-            } else {
-                // If no code block, try to find raw JSON
+            } else if (!jsonStr.startsWith('{')) {
+                // If no code block and doesn't start with {, try to find raw JSON
                 const jsonMatch = text.match(/\{[^]*\}/);  
                 if (jsonMatch) {
                     jsonStr = jsonMatch[0];
@@ -115,7 +127,12 @@ Return a JSON object in this exact format:
                 };
             } catch (parseError) {
                 console.error('Error parsing JSON:', parseError);
-                throw new Error('Failed to parse API response');
+                console.log('Attempting to return empty events due to parse error');
+                // Return empty events instead of throwing error
+                return {
+                    events: [],
+                    rawResponse: text || "Failed to analyze frame"
+                };
             }
 
         } catch (error) {

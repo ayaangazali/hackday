@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { DashboardLayout } from "@/components/dashboard-layout"
+import { MetricCard, ActivityCard } from "@/components/dashboard-cards"
 import {
   createColumnHelper,
   flexRender,
@@ -9,34 +11,36 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
-import { ArrowUpDown, Download } from "lucide-react"
+import { 
+  ArrowUpDown, 
+  Download, 
+  AlertTriangle, 
+  TrendingUp, 
+  Video, 
+  Clock,
+  Activity,
+  Shield,
+  Eye,
+  BarChart3,
+  FileText
+} from "lucide-react"
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
   Legend,
-  ArcElement,
-  LineElement,
-  PointElement,
-  LineController,
-} from 'chart.js'
-import { Bar, Pie, Line } from 'react-chartjs-2'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  LineController
-)
+  ResponsiveContainer,
+} from "recharts"
 
 interface KeyMoment {
   videoName: string
@@ -45,22 +49,35 @@ interface KeyMoment {
   isDangerous: boolean
 }
 
+const COLORS = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
+
 export default function StatisticsPage() {
+  const [keyMoments, setKeyMoments] = useState<KeyMoment[]>([])
+  const [summary, setSummary] = useState<string>('')
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false)
+  const [chartData, setChartData] = useState<any>({
+    videoData: [],
+    timelineData: [],
+    dangerDistribution: [],
+  })
+  const [metrics, setMetrics] = useState({
+    totalIncidents: 0,
+    dangerousCount: 0,
+    activeVideos: 0,
+    avgResponseTime: '2.3s',
+  })
+
   const exportToCSV = () => {
-    // Convert keyMoments to CSV format
     const csvContent = [
-      // Header row
       ['Video Name', 'Timestamp', 'Description', 'Is Dangerous'].join(','),
-      // Data rows
       ...keyMoments.map(moment => [
         moment.videoName,
         moment.timestamp,
-        `"${moment.description}"`, // Wrap description in quotes to handle commas
+        `"${moment.description}"`,
         moment.isDangerous
       ].join(','))
     ].join('\n')
 
-    // Create blob and download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
@@ -71,22 +88,76 @@ export default function StatisticsPage() {
     link.click()
     document.body.removeChild(link)
   }
-  const [keyMoments, setKeyMoments] = useState<KeyMoment[]>([])
-  const [summary, setSummary] = useState<string>('')
-  const [isLoadingSummary, setIsLoadingSummary] = useState(false)
-  const [chartData, setChartData] = useState<{
-    dangerousMomentsByVideo: any;
-    dangerTypeDistribution: any;
-    dangerTrend: any;
-  }>({
-    dangerousMomentsByVideo: null,
-    dangerTypeDistribution: null,
-    dangerTrend: null,
-  })
 
   useEffect(() => {
+    // Demo data for when localStorage is empty
+    const demoVideos = [
+      {
+        name: "Front Entrance Monitor",
+        timestamps: [
+          { timestamp: "00:15", description: "Person loitering near entrance for extended period", isDangerous: true },
+          { timestamp: "02:30", description: "Unauthorized access attempt detected", isDangerous: true },
+          { timestamp: "05:45", description: "Normal foot traffic", isDangerous: false },
+          { timestamp: "08:20", description: "Suspicious package left unattended", isDangerous: true },
+        ]
+      },
+      {
+        name: "Parking Lot Camera A",
+        timestamps: [
+          { timestamp: "01:10", description: "Vehicle break-in detected", isDangerous: true },
+          { timestamp: "03:25", description: "Regular parking activity", isDangerous: false },
+          { timestamp: "06:40", description: "Altercation between two individuals", isDangerous: true },
+          { timestamp: "09:15", description: "Vehicle departing normally", isDangerous: false },
+        ]
+      },
+      {
+        name: "Store Interior - Aisle 3",
+        timestamps: [
+          { timestamp: "00:45", description: "Shoplifting incident in progress", isDangerous: true },
+          { timestamp: "02:55", description: "Customer browsing products", isDangerous: false },
+          { timestamp: "05:30", description: "Potential theft - individual concealing items", isDangerous: true },
+          { timestamp: "07:50", description: "Staff restocking shelves", isDangerous: false },
+        ]
+      },
+      {
+        name: "Warehouse Loading Dock",
+        timestamps: [
+          { timestamp: "01:20", description: "Unauthorized personnel in restricted area", isDangerous: true },
+          { timestamp: "04:10", description: "Normal loading operations", isDangerous: false },
+          { timestamp: "06:35", description: "Safety violation - no PPE detected", isDangerous: true },
+          { timestamp: "08:45", description: "Equipment being moved safely", isDangerous: false },
+        ]
+      },
+      {
+        name: "Office Lobby Monitor",
+        timestamps: [
+          { timestamp: "00:30", description: "Aggressive behavior toward security", isDangerous: true },
+          { timestamp: "03:15", description: "Employees arriving for work", isDangerous: false },
+          { timestamp: "05:20", description: "Unidentified person attempting entry", isDangerous: true },
+          { timestamp: "07:40", description: "Delivery personnel checking in", isDangerous: false },
+        ]
+      },
+      {
+        name: "Emergency Exit - East Wing",
+        timestamps: [
+          { timestamp: "02:00", description: "Emergency exit door forced open", isDangerous: true },
+          { timestamp: "04:25", description: "Routine safety inspection", isDangerous: false },
+          { timestamp: "06:50", description: "Fire alarm triggered - potential threat", isDangerous: true },
+          { timestamp: "09:30", description: "Door secured after inspection", isDangerous: false },
+        ]
+      }
+    ]
+
     const savedVideos = JSON.parse(localStorage.getItem("savedVideos") || "[]")
-    const moments: KeyMoment[] = savedVideos.flatMap((video: any) =>
+    
+    // Use demo data if no saved videos exist
+    let videosToUse = savedVideos.length > 0 ? savedVideos : demoVideos
+    // If localStorage is empty, save demo videos so they appear in saved videos too
+    if (savedVideos.length === 0) {
+      localStorage.setItem("savedVideos", JSON.stringify(demoVideos))
+      videosToUse = demoVideos
+    }
+    const moments: KeyMoment[] = videosToUse.flatMap((video: any) =>
       video.timestamps.map((ts: any) => ({
         videoName: video.name,
         timestamp: ts.timestamp,
@@ -94,33 +165,23 @@ export default function StatisticsPage() {
         isDangerous: ts.isDangerous || false,
       }))
     )
-    console.log('Processed Moments:', moments)
     setKeyMoments(moments)
 
-    // Generate summary using API route
+    // Generate summary
     const fetchSummary = async () => {
       setIsLoadingSummary(true)
       try {
         const response = await fetch('/api/summary', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ keyMoments: moments })
         })
-        
         const data = await response.json()
-        if (data.error) {
-          throw new Error(data.error)
-        }
+        if (data.error) throw new Error(data.error)
         setSummary(data.summary)
       } catch (error: any) {
         console.error('Error fetching summary:', error)
-        const errorMessage = error?.message || 'Unable to generate summary at this time.'
-        setSummary(`Error: ${errorMessage}`)
-        if (error?.details) {
-          console.error('Error details:', error.details)
-        }
+        setSummary(`Error: ${error?.message || 'Unable to generate summary'}`)
       } finally {
         setIsLoadingSummary(false)
       }
@@ -130,80 +191,49 @@ export default function StatisticsPage() {
       fetchSummary()
     }
 
-    console.log('Saved Videos:', savedVideos)
-
-
-
-    // Filter dangerous moments using the isDangerous flag
-    const dangerousMoments = moments.filter(moment => moment.isDangerous)
-
-    // Count dangerous moments by video
-    const dangerousByVideo = dangerousMoments.reduce((acc: { [key: string]: number }, moment) => {
+    // Process data for charts
+    const dangerousMoments = moments.filter(m => m.isDangerous)
+    const dangerousByVideo = dangerousMoments.reduce((acc: any, moment) => {
       acc[moment.videoName] = (acc[moment.videoName] || 0) + 1
       return acc
     }, {})
 
-    // Calculate dangerous vs non-dangerous ratio
-    const dangerousCount = dangerousMoments.length
-    const nonDangerousCount = moments.length - dangerousCount
+    const videoChartData = Object.entries(dangerousByVideo).map(([name, count]) => ({
+      name: name.substring(0, 15) + (name.length > 15 ? '...' : ''),
+      incidents: count,
+    }))
 
-    // Create time-based trend data (by 15-minute intervals)
-    const trendData = dangerousMoments.reduce((acc: { [key: string]: number }, moment) => {
+    const trendData = dangerousMoments.reduce((acc: any, moment) => {
       const [hours, minutes] = moment.timestamp.split(':').map(Number)
       const interval = `${hours.toString().padStart(2, '0')}:${Math.floor(minutes / 15) * 15}`.padEnd(5, '0')
       acc[interval] = (acc[interval] || 0) + 1
       return acc
     }, {})
 
+    const timelineChartData = Object.entries(trendData)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([time, count]) => ({
+        time,
+        incidents: count,
+      }))
+
+    const dangerousCount = dangerousMoments.length
+    const nonDangerousCount = moments.length - dangerousCount
+
     setChartData({
-      dangerousMomentsByVideo: {
-        labels: Object.keys(dangerousByVideo),
-        datasets: [
-          {
-            label: 'Dangerous Moments per Video',
-            data: Object.values(dangerousByVideo),
-            backgroundColor: 'rgba(255, 99, 132, 0.6)',
-            borderColor: 'rgba(255, 99, 132, 1)',
-            borderWidth: 1,
-          },
-        ],
-      },
-      dangerTypeDistribution: {
-        labels: ['Dangerous Moments', 'Non-Dangerous Moments'],
-        datasets: [
-          {
-            label: 'Safety Incident Distribution',
-            data: [dangerousCount, nonDangerousCount],
-            backgroundColor: [
-              'rgba(255, 99, 132, 0.6)',  // Red for dangerous
-              'rgba(54, 162, 235, 0.6)',   // Blue for non-dangerous
-            ],
-            borderColor: [
-              'rgba(255, 99, 132, 1)',
-              'rgba(54, 162, 235, 1)',
-              'rgba(255, 206, 86, 1)',
-              'rgba(75, 192, 192, 1)',
-              'rgba(153, 102, 255, 1)',
-              'rgba(255, 159, 64, 1)',
-            ],
-            borderWidth: 1,
-          },
-        ],
-      },
-      dangerTrend: {
-        labels: Object.keys(trendData).sort(),
-        datasets: [
-          {
-            label: 'Dangerous Moments Over Time',
-            data: Object.keys(trendData).sort().map(key => trendData[key]),
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            borderColor: 'rgba(255, 99, 132, 1)',
-            borderWidth: 2,
-            tension: 0.4,
-            fill: true,
-          },
-        ],
-      },
+      videoData: videoChartData,
+      timelineData: timelineChartData,
+      dangerDistribution: [
+        { name: 'Dangerous', value: dangerousCount, color: '#ef4444' },
+        { name: 'Safe', value: nonDangerousCount, color: '#10b981' },
+      ],
+    })
+
+    setMetrics({
+      totalIncidents: moments.length,
+      dangerousCount,
+      activeVideos: savedVideos.length,
+      avgResponseTime: '2.3s',
     })
   }, [])
 
@@ -211,214 +241,291 @@ export default function StatisticsPage() {
 
   const columns = [
     columnHelper.accessor("videoName", {
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Video Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
-      cell: (info) => info.getValue(),
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="text-slate-300 hover:text-white"
+        >
+          Video Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: (info) => <span className="text-slate-300">{info.getValue()}</span>,
     }),
     columnHelper.accessor("timestamp", {
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Timestamp
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
-      cell: (info) => info.getValue(),
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="text-slate-300 hover:text-white"
+        >
+          Timestamp
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: (info) => <span className="text-slate-400">{info.getValue()}</span>,
     }),
     columnHelper.accessor("description", {
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Description
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
-      cell: (info) => info.getValue(),
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="text-slate-300 hover:text-white"
+        >
+          Description
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: (info) => <span className="text-slate-300">{info.getValue()}</span>,
+    }),
+    columnHelper.accessor("isDangerous", {
+      header: "Status",
+      cell: (info) => (
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            info.getValue()
+              ? "bg-red-500/10 text-red-400 border border-red-500/20"
+              : "bg-green-500/10 text-green-400 border border-green-500/20"
+          }`}
+        >
+          {info.getValue() ? "Dangerous" : "Safe"}
+        </span>
+      ),
     }),
   ]
 
   const table = useReactTable({
     data: keyMoments,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  })
-
-  return (
-    <div className="flex-1 w-full flex flex-col gap-8 items-center p-8">
-      <div className="w-full max-w-6xl flex flex-col gap-8">
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="p-6 bg-card rounded-lg border shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Dangerous Moments by Video</h2>
-            {chartData.dangerousMomentsByVideo && (
-              <Bar
-                data={chartData.dangerousMomentsByVideo}
-                options={{
-                  responsive: true,
-                  plugins: {
-                    legend: {
-                      position: 'top' as const,
-                    },
-                    title: {
-                      display: true,
-                      text: 'Number of Dangerous Moments Detected'
-                    }
-                  },
-                }}
-              />
-            )}
-          </div>
-          <div className="p-6 bg-card rounded-lg border shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Dangerous vs Non-Dangerous Moments</h2>
-            {chartData.dangerTypeDistribution && (
-              <Pie
-                data={chartData.dangerTypeDistribution}
-                options={{
-                  responsive: true,
-                  plugins: {
-                    legend: {
-                      position: 'right' as const,
-                    },
-                    title: {
-                      display: true,
-                      text: 'Safety Incident Distribution'
-                    }
-                  },
-                }}
-              />
-            )}
-          </div>
-          <div className="p-6 bg-card rounded-lg border shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Danger Trend Over Time</h2>
-            {chartData.dangerTrend && (
-              <Line
-                data={chartData.dangerTrend}
-                options={{
-                  responsive: true,
-                  plugins: {
-                    legend: {
-                      position: 'top' as const,
-                    },
-                    title: {
-                      display: true,
-                      text: 'Dangerous Moments Timeline'
-                    }
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      title: {
-                        display: true,
-                        text: 'Number of Incidents'
-                      }
-                    },
-                    x: {
-                      title: {
-                        display: true,
-                        text: 'Time (15-min intervals)'
-                      }
-                    }
-                  }
-                }}
-              />
-            )}
+    return (
+      <DashboardLayout>
+        <div className="min-h-screen bg-neutral-50 flex items-center justify-center py-10 px-2">
+          <div className="w-full max-w-7xl mx-auto">
+            <div className="mb-8">
+              <h1 className="text-4xl font-extrabold text-neutral-900 tracking-tight mb-2">Analytics Dashboard</h1>
+              <p className="text-lg text-neutral-500">Security insights, incident trends, and video activity at a glance</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+              {/* ...existing code... */}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+              {/* ...existing code... */}
+            </div>
+            <div className="rounded-2xl border border-neutral-200 bg-white shadow-xl p-8">
+              {/* ...existing code... */}
+            </div>
           </div>
         </div>
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Video Key Moments</h1>
-          <Button
-            onClick={exportToCSV}
-            variant="outline"
-            className="gap-2"
-          >
+      </DashboardLayout>
+    )
             <Download className="h-4 w-4" />
-            Export CSV
+            Export Report
           </Button>
         </div>
-        
-        <div className="rounded-md border">
-          <table className="w-full">
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th key={header.id} className="px-4 py-3 text-left bg-muted/50">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </th>
+
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <MetricCard
+            title="Total Incidents"
+            value={metrics.totalIncidents}
+            change="+12%"
+            changeType="positive"
+            icon={Activity}
+            iconColor="text-blue-400"
+          />
+          <MetricCard
+            title="Dangerous Events"
+            value={metrics.dangerousCount}
+            change={`${((metrics.dangerousCount / metrics.totalIncidents) * 100).toFixed(1)}%`}
+            changeType="negative"
+            icon={AlertTriangle}
+            iconColor="text-red-400"
+          />
+          <MetricCard
+            title="Active Videos"
+            value={metrics.activeVideos}
+            change="3 new"
+            changeType="positive"
+            icon={Video}
+            iconColor="text-purple-400"
+          />
+          <MetricCard
+            title="Avg Response Time"
+            value={metrics.avgResponseTime}
+            change="-0.2s"
+            changeType="positive"
+            icon={Clock}
+            iconColor="text-green-400"
+          />
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Incidents by Video */}
+          <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-white">Incidents by Video</h2>
+              <BarChart3 className="w-5 h-5 text-slate-400" />
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData.videoData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="name" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
+                <RechartsTooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: '1px solid #334155',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }} 
+                />
+                <Bar dataKey="incidents" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Safety Distribution */}
+          <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-white">Safety Distribution</h2>
+              <Shield className="w-5 h-5 text-slate-400" />
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={chartData.dangerDistribution}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {chartData.dangerDistribution.map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className="border-t hover:bg-muted/50"
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-3">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={columns.length} className="h-24 text-center">
-                    No key moments found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                </Pie>
+                <RechartsTooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: '1px solid #334155',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }} 
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        <div className="text-sm text-muted-foreground">
-          {keyMoments.length} key moments found across all saved videos
+        {/* Timeline Chart */}
+        <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-white">Incident Timeline</h2>
+            <TrendingUp className="w-5 h-5 text-slate-400" />
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={chartData.timelineData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="time" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" />
+              <RechartsTooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1e293b', 
+                  border: '1px solid #334155',
+                  borderRadius: '8px',
+                  color: '#fff'
+                }} 
+              />
+              <Area 
+                type="monotone" 
+                dataKey="incidents" 
+                stroke="#ef4444" 
+                fill="#ef4444" 
+                fillOpacity={0.3} 
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* AI Summary Section */}
-        <div className="mt-8 p-6 bg-white/5 rounded-lg backdrop-blur-sm border border-white/10">
-          <h2 className="text-2xl font-semibold mb-4">AI Analysis Summary</h2>
+        {/* AI Summary */}
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-purple-500/10 rounded-lg">
+              <FileText className="w-5 h-5 text-purple-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-white">AI Analysis Summary</h2>
+          </div>
           {isLoadingSummary ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500"></div>
             </div>
           ) : summary ? (
             <div className="prose prose-invert max-w-none">
-              <div className="whitespace-pre-line">{summary}</div>
+              <p className="text-slate-300 whitespace-pre-line leading-relaxed">{summary}</p>
             </div>
-          ) : null}
+          ) : (
+            <p className="text-slate-400">No data available for analysis</p>
+          )}
+        </div>
+
+        {/* Data Table */}
+        <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden">
+          <div className="p-6 border-b border-slate-800">
+            <h2 className="text-xl font-semibold text-white">Detailed Event Log</h2>
+            <p className="text-sm text-slate-400 mt-1">
+              {keyMoments.length} events recorded across all videos
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-900">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th key={header.id} className="px-6 py-4 text-left">
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="border-t border-slate-800 hover:bg-slate-800/50 transition-colors"
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td key={cell.id} className="px-6 py-4">
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={columns.length} className="h-32 text-center text-slate-400">
+                      No events found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   )
 }

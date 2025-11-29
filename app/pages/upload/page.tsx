@@ -3,10 +3,11 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Upload, Save } from "lucide-react"
+import { Upload, Save, Video, FileVideo, BarChart3 } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { DashboardLayout } from "@/components/dashboard-layout"
 
 import VideoPlayer from "@/components/video-player"
 import TimestampList from "@/components/timestamp-list"
@@ -192,23 +193,30 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl relative">
-        <div className="relative z-10 p-8">
-          <div className="space-y-8">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold mb-2 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">
-                Video Timestamp Analyzer
-              </h1>
-              <p className="text-zinc-400">Upload a video to analyze key moments and generate timestamps</p>
-            </div>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Upload & Analyze</h1>
+            <p className="text-slate-400">Upload videos to detect key moments and safety incidents</p>
+          </div>
+          <Link href="/pages/saved-videos">
+            <Button className="bg-purple-600 hover:bg-purple-700 text-white gap-2">
+              <Video className="h-4 w-4" />
+              View Saved Videos
+            </Button>
+          </Link>
+        </div>
+
+        <div className="max-w-4xl">
+          <div className="space-y-6">
 
             {!videoUrl && (
-              <div className="flex justify-center">
-                <div className="w-full max-w-md">
+              <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-8">
+                <div className="w-full">
                   <label
                     htmlFor="video-upload"
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-zinc-700 hover:bg-zinc-800/50 transition-colors"
+                    className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-xl cursor-pointer border-slate-700 hover:border-blue-500/50 hover:bg-slate-800/50 transition-all duration-300"
                     onDragOver={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -236,11 +244,17 @@ export default function UploadPage() {
                       }
                     }}
                   >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="h-8 w-8 mb-2 text-zinc-400" />
-                      <p className="mb-2 text-sm text-zinc-400">
-                        <span className="font-semibold">Click to upload</span> or drag and drop
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="p-4 bg-blue-500/10 rounded-full mb-4">
+                        <FileVideo className="h-12 w-12 text-blue-400" />
+                      </div>
+                      <p className="mb-2 text-lg font-semibold text-white">
+                        Upload Your Video
                       </p>
+                      <p className="text-sm text-slate-400 mb-4">
+                        <span className="text-blue-400 font-medium">Click to browse</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-slate-500">MP4, MOV, AVI up to 500MB</p>
                     </div>
                     <input
                       id="video-upload"
@@ -284,14 +298,9 @@ export default function UploadPage() {
               </div>
             )}
 
-            <div className="text-center">
-              <Link href="/pages/saved-videos" className="text-white hover:text-gray-300">
-                View Saved Videos
-              </Link>
-            </div>
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   )
 }
