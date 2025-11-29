@@ -52,7 +52,7 @@ export function DashboardSidebar() {
         <div className="h-16 flex items-center px-6 border-b border-slate-200">
           <Link href="/" className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl">
-              <Eye className="w-6 h-6 text-white" />
+              <Eye className="w-6 h-6 text-slate-700" />
             </div>
             {!collapsed && (
               <div>

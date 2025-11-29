@@ -84,7 +84,7 @@ export function CameraFeed({ camera, date = new Date(), onTimeUpdate }: CameraFe
           <Battery className="h-4 w-4" />
         </div>
         <div className="rounded-full bg-white/20 p-1.5 backdrop-blur-sm">
-          <MoreHorizontal className="h-4 w-4 text-white" />
+          <MoreHorizontal className="h-4 w-4 text-slate-700" />
         </div>
       </div>
 
@@ -92,8 +92,8 @@ export function CameraFeed({ camera, date = new Date(), onTimeUpdate }: CameraFe
       <div className="absolute bottom-0 left-0 right-0 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-sm font-medium text-white">{camera.location}</div>
-            <div className="text-xs text-white/60">{camera.address}</div>
+            <div className="text-sm font-medium text-slate-900">{camera.location}</div>
+            <div className="text-xs text-slate-600">{camera.address}</div>
           </div>
         </div>
       </div>

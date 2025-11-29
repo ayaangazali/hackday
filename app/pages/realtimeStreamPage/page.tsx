@@ -704,8 +704,8 @@ export default function Page() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Live Stream Analysis</h1>
-            <p className="text-slate-400">Real-time video analysis with AI-powered detection</p>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Live Stream Analysis</h1>
+            <p className="text-slate-900">Real-time video analysis with AI-powered detection</p>
           </div>
         </div>
 
@@ -718,7 +718,7 @@ export default function Page() {
                   {isInitializing && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 z-20">
                       <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
-                      <p className="text-slate-300 font-medium">{initializationProgress}</p>
+                      <p className="text-slate-900 font-medium">{initializationProgress}</p>
                     </div>
                   )}
                   <div className="relative w-full h-full">
@@ -782,7 +782,7 @@ export default function Page() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-sm text-zinc-400">
+                    <span className="text-sm text-slate-200">
                       Recording and analyzing...
                     </span>
                   </div>
@@ -811,7 +811,7 @@ export default function Page() {
                       currentTime={currentTime}
                     />
                   ) : (
-                    <p className="text-zinc-400 text-sm">
+                    <p className="text-slate-900 text-sm">
                       {isRecording
                         ? "Waiting for events..."
                         : "Start analysis to detect events"}
@@ -826,24 +826,24 @@ export default function Page() {
 
               {/* Transcript Section */}
               <div className="mt-8 space-y-2">
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-slate-900">
                   Audio Transcript
                 </h2>
                 <div className="p-4 bg-zinc-900/50 rounded-lg">
                   {isTranscribing && (
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                      <span className="text-sm text-zinc-400">
+                      <span className="text-sm text-slate-200">
                         Transcribing audio...
                       </span>
                     </div>
                   )}
                   {transcript ? (
-                    <p className="text-zinc-300 whitespace-pre-wrap">
+                    <p className="text-slate-900 whitespace-pre-wrap">
                       {transcript}
                     </p>
                   ) : (
-                    <p className="text-zinc-500 italic">
+                    <p className="text-slate-200 italic">
                       {isRecording
                         ? "Waiting for speech..."
                         : "Start recording to capture audio"}
@@ -855,7 +855,7 @@ export default function Page() {
               {/* Save section – shown only after recording stops */}
               {isClient && !isRecording && recordedVideoUrl && (
                 <div className="mt-8 p-6 bg-zinc-900/50 rounded-lg border border-zinc-800">
-                  <h2 className="text-xl font-semibold mb-4 text-white">
+                  <h2 className="text-xl font-semibold mb-4 text-slate-900">
                     Save Recording
                   </h2>
                   <div className="flex gap-4">

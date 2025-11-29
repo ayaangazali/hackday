@@ -22,9 +22,9 @@ export function MetricCard({
   trend
 }: MetricCardProps) {
   return (
-    <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-all duration-200 hover:shadow-lg hover:shadow-slate-900/50">
+    <div className="bg-white border border-slate-100 rounded-xl p-6 hover:shadow-lg transition-all duration-200">
       <div className="flex items-start justify-between mb-4">
-        <div className={cn("p-3 rounded-lg bg-slate-800/50", iconColor)}>
+        <div className={cn("p-3 rounded-lg bg-slate-50 shadow-sm", iconColor)}>
           <Icon className="w-6 h-6" />
         </div>
         {change && (
@@ -32,8 +32,8 @@ export function MetricCard({
             className={cn(
               "text-xs font-semibold px-2 py-1 rounded-full",
               changeType === "positive" && "bg-green-500/10 text-green-400",
-              changeType === "negative" && "bg-red-500/10 text-red-400",
-              changeType === "neutral" && "bg-slate-700 text-slate-400"
+              changeType === "negative" && "bg-rose-50 text-rose-700",
+              changeType === "neutral" && "bg-slate-50 text-slate-600"
             )}
           >
             {change}
@@ -41,8 +41,8 @@ export function MetricCard({
         )}
       </div>
       <div>
-        <p className="text-slate-400 text-sm mb-1">{title}</p>
-        <p className="text-3xl font-bold text-white">{value}</p>
+        <p className="text-sm text-slate-600 mb-1">{title}</p>
+        <p className="text-3xl font-bold text-slate-900">{value}</p>
         {trend && <div className="mt-3">{trend}</div>}
       </div>
     </div>
@@ -72,13 +72,13 @@ export function ActivityCard({
   }
 
   return (
-    <div className="flex items-start gap-4 p-4 bg-slate-900/30 border border-slate-800 rounded-lg hover:bg-slate-900/50 transition-colors">
+    <div className="flex items-start gap-4 p-4 bg-white border border-slate-100 rounded-lg hover:shadow-sm transition-colors">
       <div className={cn("p-2 rounded-lg", typeStyles[type])}>
         <Icon className="w-4 h-4" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-white mb-1">{title}</p>
-        <p className="text-xs text-slate-400 mb-2">{description}</p>
+        <p className="text-sm font-semibold text-slate-800 mb-1">{title}</p>
+        <p className="text-xs text-slate-600 mb-2">{description}</p>
         <p className="text-xs text-slate-500">{timestamp}</p>
       </div>
     </div>

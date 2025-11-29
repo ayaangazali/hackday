@@ -1,6 +1,7 @@
 "use client"
 
 import { Bell, Search, User, Settings, LogOut } from "lucide-react"
+import { signOutAction } from "@/app/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -116,12 +117,13 @@ export function DashboardHeader() {
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-slate-200" />
-            <DropdownMenuItem 
-              className="text-rose-600 hover:bg-rose-50 cursor-pointer font-medium"
-              onClick={() => router.push('/sign-in')}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign out
+            <DropdownMenuItem asChild>
+              <form action={signOutAction} method="post">
+                <button type="submit" className="w-full text-left text-rose-600 hover:bg-rose-50 cursor-pointer font-medium flex items-center gap-2 px-2 py-2">
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign out</span>
+                </button>
+              </form>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

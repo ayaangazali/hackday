@@ -81,8 +81,8 @@ export default function VideoPage() {
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <Video className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400">Loading video...</p>
+            <Video className="w-16 h-16 text-slate-700 mx-auto mb-4" />
+            <p className="text-slate-700">Loading video...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -100,8 +100,8 @@ export default function VideoPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-white">{video.name}</h1>
-              <div className="flex items-center gap-2 mt-2 text-slate-400 text-sm">
+              <h1 className="text-3xl font-bold text-slate-900">{video.name}</h1>
+              <div className="flex items-center gap-2 mt-2 text-slate-700 text-sm">
                 <Clock className="w-4 h-4" />
                 <span>{video.timestamps.length} key moments detected</span>
               </div>
@@ -114,13 +114,13 @@ export default function VideoPage() {
         </div>
 
         <div className="max-w-6xl space-y-6">
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden">
+          <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
             <VideoPlayer url={video.url} timestamps={video.timestamps} ref={videoRef} />
           </div>
           
           {/* Timeline component */}
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Key Moments Timeline</h2>
+          <div className="bg-white border border-slate-100 rounded-xl p-6">
+            <h2 className="text-xl font-semibold text-slate-900 mb-4">Key Moments Timeline</h2>
             <Timeline
               events={video.timestamps.map(ts => {
                 console.log('Processing timestamp:', ts);
@@ -171,7 +171,7 @@ export default function VideoPage() {
                   alert('Failed to download video. Please try again.')
                 }
               }}
-              className="bg-white/10 hover:bg-white/20 text-white border border-white/20 flex items-center gap-2 backdrop-blur-sm transition-colors"
+              className="bg-white/90 hover:bg-white/95 text-slate-900 border border-slate-100 flex items-center gap-2 backdrop-blur-sm transition-colors"
             >
               <Download className="w-4 h-4" />
               Download MP4

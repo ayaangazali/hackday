@@ -197,8 +197,8 @@ export default function UploadPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Upload & Analyze</h1>
-            <p className="text-slate-400">Upload videos to detect key moments and safety incidents</p>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Upload & Analyze</h1>
+            <p className="text-slate-800">Upload videos to detect key moments and safety incidents</p>
           </div>
           <Link href="/pages/saved-videos">
             <Button className="bg-purple-600 hover:bg-purple-700 text-white gap-2">
@@ -248,13 +248,13 @@ export default function UploadPage() {
                       <div className="p-4 bg-blue-500/10 rounded-full mb-4">
                         <FileVideo className="h-12 w-12 text-blue-400" />
                       </div>
-                      <p className="mb-2 text-lg font-semibold text-white">
+                      <p className="mb-2 text-lg font-semibold text-slate-900">
                         Upload Your Video
                       </p>
-                      <p className="text-sm text-slate-400 mb-4">
+                      <p className="text-sm text-slate-700 mb-4">
                         <span className="text-blue-400 font-medium">Click to browse</span> or drag and drop
                       </p>
-                      <p className="text-xs text-slate-500">MP4, MOV, AVI up to 500MB</p>
+                      <p className="text-xs text-slate-600">MP4, MOV, AVI up to 500MB</p>
                     </div>
                     <input
                       id="video-upload"
@@ -272,7 +272,7 @@ export default function UploadPage() {
             {(isUploading || isAnalyzing) && (
               <div className="space-y-2">
                 <Progress value={uploadProgress} className="w-full" />
-                <p className="text-center text-sm text-zinc-400">
+                <p className="text-center text-sm text-slate-700">
                   {isUploading ? "Uploading video..." : "Analyzing video content..."}
                 </p>
               </div>

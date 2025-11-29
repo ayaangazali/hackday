@@ -69,8 +69,8 @@ export default function SavedVideosPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-semibold text-slate-800 mb-1">Saved Videos</h1>
-            <p className="text-slate-500">{savedVideos.length} videos in your library</p>
+            <h1 className="text-3xl font-semibold text-slate-900 mb-1">Saved Videos</h1>
+            <p className="text-slate-800">{savedVideos.length} videos in your library</p>
           </div>
         </div>
 
@@ -81,7 +81,7 @@ export default function SavedVideosPage() {
             placeholder="Search videos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white border border-slate-200 text-slate-700 placeholder-slate-400 pl-10 pr-4 py-3 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full bg-white border border-slate-200 text-slate-900 placeholder-slate-500 pl-10 pr-4 py-3 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           />
         </div>
 

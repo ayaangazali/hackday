@@ -8,6 +8,7 @@ import "./globals.css";
 import "nprogress/nprogress.css";
 import { NavigationEvents } from "@/components/navigation-events";
 import NProgress from "nprogress";
+import StackClientWrapper from "@/components/stack-client-wrapper";
 
 // Configure NProgress to complete instantly
 NProgress.configure({
@@ -39,8 +40,9 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 		return (
-				<html lang="en" className={geistSans.className} suppressHydrationWarning>
-					<body className="bg-slate-950 text-foreground" suppressHydrationWarning>
+			<html lang="en" className={geistSans.className} suppressHydrationWarning>
+				<body className="bg-slate-950 text-foreground" suppressHydrationWarning>
+					<StackClientWrapper>
 						<NavigationEvents />
 						<ThemeProvider
 							attribute="class"
@@ -50,7 +52,8 @@ export default function RootLayout({
 						>
 							{children}
 						</ThemeProvider>
-					</body>
-				</html>
+					</StackClientWrapper>
+				</body>
+			</html>
 		);
 }

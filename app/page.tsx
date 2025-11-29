@@ -39,8 +39,8 @@ export default function Home() {
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-8xl font-bold text-white tracking-tight">
-              <span className="inline-block">iSPY</span>{" "}
+            <h1 className="text-8xl font-bold tracking-tight">
+              <span className="inline-block text-white">iSPY</span>{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-gradient">
                 Analytics
               </span>
@@ -145,7 +145,7 @@ export default function Home() {
       {/* Interactive Dashboard Preview Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-white mb-4">Experience the Dashboard</h2>
+          <h2 className="text-4xl font-bold text-slate-900 mb-4">Experience the Dashboard</h2>
           <p className="text-slate-400 text-lg">Interactive preview of your security command center</p>
         </div>
 

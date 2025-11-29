@@ -151,12 +151,8 @@ export default function StatisticsPage() {
     const savedVideos = JSON.parse(localStorage.getItem("savedVideos") || "[]")
     
     // Use demo data if no saved videos exist
-    let videosToUse = savedVideos.length > 0 ? savedVideos : demoVideos
-    // If localStorage is empty, save demo videos so they appear in saved videos too
-    if (savedVideos.length === 0) {
-      localStorage.setItem("savedVideos", JSON.stringify(demoVideos))
-      videosToUse = demoVideos
-    }
+    const videosToUse = savedVideos.length > 0 ? savedVideos : demoVideos
+    
     const moments: KeyMoment[] = videosToUse.flatMap((video: any) =>
       video.timestamps.map((ts: any) => ({
         videoName: video.name,
@@ -192,30 +188,30 @@ export default function StatisticsPage() {
     }
 
     // Process data for charts
-    const dangerousMoments = moments.filter(m => m.isDangerous)
-    const dangerousByVideo = dangerousMoments.reduce((acc: any, moment) => {
+    const dangerousMoments = moments.filter((m) => m.isDangerous)
+
+    // Incidents by video
+    const dangerousByVideo = dangerousMoments.reduce((acc: Record<string, number>, moment) => {
       acc[moment.videoName] = (acc[moment.videoName] || 0) + 1
       return acc
     }, {})
 
     const videoChartData = Object.entries(dangerousByVideo).map(([name, count]) => ({
-      name: name.substring(0, 15) + (name.length > 15 ? '...' : ''),
+      name,
       incidents: count,
     }))
 
-    const trendData = dangerousMoments.reduce((acc: any, moment) => {
-      const [hours, minutes] = moment.timestamp.split(':').map(Number)
-      const interval = `${hours.toString().padStart(2, '0')}:${Math.floor(minutes / 15) * 15}`.padEnd(5, '0')
+    // Simple timeline aggregation by minute/seconds intervals (group by 15-second buckets)
+    const trendData = moments.reduce((acc: Record<string, number>, m) => {
+      const [mm, ss] = (m.timestamp || '00:00').split(':').map(Number)
+      const interval = `${String(mm).padStart(2, '0')}:${String(Math.floor(ss / 15) * 15).padStart(2, '0')}`
       acc[interval] = (acc[interval] || 0) + 1
       return acc
     }, {})
 
     const timelineChartData = Object.entries(trendData)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([time, count]) => ({
-        time,
-        incidents: count,
-      }))
+      .map(([time, count]) => ({ time, incidents: count }))
 
     const dangerousCount = dangerousMoments.length
     const nonDangerousCount = moments.length - dangerousCount
@@ -232,7 +228,7 @@ export default function StatisticsPage() {
     setMetrics({
       totalIncidents: moments.length,
       dangerousCount,
-      activeVideos: savedVideos.length,
+      activeVideos: videosToUse.length,
       avgResponseTime: '2.3s',
     })
   }, [])
@@ -297,27 +293,24 @@ export default function StatisticsPage() {
 
   const table = useReactTable({
     data: keyMoments,
-    return (
-      <DashboardLayout>
-        <div className="min-h-screen bg-neutral-50 flex items-center justify-center py-10 px-2">
-          <div className="w-full max-w-7xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-4xl font-extrabold text-neutral-900 tracking-tight mb-2">Analytics Dashboard</h1>
-              <p className="text-lg text-neutral-500">Security insights, incident trends, and video activity at a glance</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-              {/* ...existing code... */}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-              {/* ...existing code... */}
-            </div>
-            <div className="rounded-2xl border border-neutral-200 bg-white shadow-xl p-8">
-              {/* ...existing code... */}
-            </div>
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  })
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Analytics Dashboard</h1>
+            <p className="text-slate-600">Comprehensive safety monitoring and incident analysis</p>
           </div>
-        </div>
-      </DashboardLayout>
-    )
+          <Button
+            onClick={exportToCSV}
+            className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+          >
             <Download className="h-4 w-4" />
             Export Report
           </Button>
@@ -336,7 +329,11 @@ export default function StatisticsPage() {
           <MetricCard
             title="Dangerous Events"
             value={metrics.dangerousCount}
-            change={`${((metrics.dangerousCount / metrics.totalIncidents) * 100).toFixed(1)}%`}
+            change={
+              metrics.totalIncidents > 0
+                ? `${((metrics.dangerousCount / metrics.totalIncidents) * 100).toFixed(1)}%`
+                : `0.0%`
+            }
             changeType="negative"
             icon={AlertTriangle}
             iconColor="text-red-400"

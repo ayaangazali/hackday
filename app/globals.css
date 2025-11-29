@@ -74,9 +74,10 @@
   --background-end-rgb: 0, 0, 0;
 }
 
+/* Use theme variables for consistent foreground/background and high contrast */
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-start-rgb));
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
 }
 
 .bg-radial-gradient {
@@ -140,21 +141,23 @@ body {
 }
 
 /* Additional styles for consistency */
+
+/* Utility classes for high-contrast text/backgrounds */
 .bg-foreground {
-  background-color: white;
+  background-color: hsl(var(--card));
 }
 
 .text-background {
-  color: black;
+  color: hsl(var(--card-foreground));
 }
 
 @media (prefers-color-scheme: dark) {
   .bg-foreground {
-    background-color: black;
+    background-color: hsl(var(--card));
   }
 
   .text-background {
-    color: white;
+    color: hsl(var(--card-foreground));
   }
 }
 

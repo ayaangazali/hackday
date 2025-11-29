@@ -59,7 +59,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen -m-6 p-6">
+  <div className="space-y-8 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen -m-6 p-6">
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
